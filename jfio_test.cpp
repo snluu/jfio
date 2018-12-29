@@ -21,7 +21,7 @@ JFile createTestFile() {
 
   return jfopen(
     filesystem::path(filePath),
-    filesystem::path("D:\\journal.txt"),
+    filesystem::path(journalPath),
     "rb+",
     "wb+"
   );
