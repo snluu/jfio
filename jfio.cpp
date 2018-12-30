@@ -169,6 +169,10 @@ static inline void incMainPos(JFile& file, int64_t count) {
   }
 }
 
+static inline bool isWriting(const JFile& file) {
+  return file.journalEndPos != 0 || file.currentBlockLength != 0;
+}
+
 JFile jfopen(
   const fs::path& mainFilePath,
   const fs::path& journalFilePath,
@@ -208,6 +212,13 @@ JFile jfopen(
 }
 
 int64_t jfseek(JFile& file, int64_t offset, int origin) {
+  if (!isWriting(file)) {
+    // read mode
+    fseek2(file.f, offset, origin);
+    file.pos = ftell2(file.f);
+    return file.pos;
+  }
+
   initJournal(file);
   closeBlock(file);
 
@@ -256,7 +267,7 @@ void jfputs(const char* str, JFile& file) {
   incMainPos(file, count);
 }
 
-void jfputs(const char* str, int64_t n, JFile & file) {
+void jfputs(const char* str, int64_t n, JFile& file) {
   initJournal(file);
   initBlock(file);
 
@@ -265,6 +276,83 @@ void jfputs(const char* str, int64_t n, JFile & file) {
   file.currentBlockLength += n;
   file.journalEndPos += n;
   incMainPos(file, n);
+}
+
+void jfputi32(int32_t i32, JFile& file)
+{
+  initJournal(file);
+  initBlock(file);
+
+  fputi32(i32, file.jf);
+
+  file.currentBlockLength += 4;
+  file.journalEndPos += 4;
+  incMainPos(file, 4);
+}
+
+void jfputi64(int64_t i64, JFile& file)
+{
+  initJournal(file);
+  initBlock(file);
+
+  fputi64(i64, file.jf);
+
+  file.currentBlockLength += 8;
+  file.journalEndPos += 8;
+  incMainPos(file, 8);
+}
+
+int jfgetc(JFile& file)
+{
+  if (isWriting(file)) {
+    return EOF;
+  }
+
+  const int ch = fgetc(file.f);
+  file.pos++;
+
+  return ch;
+}
+
+int jfgetn(char* s, uint32_t count, JFile& file)
+{
+  if (isWriting(file)) {
+    return EOF;
+  }
+
+  int ch = EOF;
+  int bytesRead = 0;
+  while ((ch = fgetc(file.f)) != EOF) {
+    *s = ch;
+    bytesRead++;
+    s++;
+  }
+
+  file.pos += bytesRead;
+
+  return bytesRead;
+}
+
+int32_t jfgeti32(JFile& file)
+{
+  if (isWriting(file)) {
+    throw runtime_error("jfgeti32: cannot read during writing mode");
+  }
+
+  const auto n = fgeti32(file.f);
+  file.pos += 4;
+  return n;
+}
+
+int64_t jfgeti64(JFile & file)
+{
+  if (isWriting(file)) {
+    throw runtime_error("jfgeti32: cannot read during writing mode");
+  }
+
+  const auto n = fgeti64(file.f);
+  file.pos += 8;
+  return n;
 }
 
 void jfflush(JFile& file) {

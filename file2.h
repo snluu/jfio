@@ -71,7 +71,8 @@ static inline void fseek2(std::FILE* f, int64_t offset, int origin) {
 }
 
 static inline void fputc2(int ch, std::FILE* f) {
-  if (std::fputc(ch, f) != ch) {
+  int x = EOF;
+  if ((x = std::fputc(ch, f)) != ch) {
     throw std::runtime_error("Write failed. Error code: " + std::to_string(ferror(f)));
   }
 }
@@ -114,17 +115,17 @@ static inline int64_t fgeti64(std::FILE* f) {
 }
 
 static inline void fputi64(int64_t i64, FILE* f) {
-  fputc2(int(i64 & 0xFF00000000000000L), f);
-  fputc2(int(i64 & 0x00FF000000000000L), f);
-  fputc2(int(i64 & 0x0000FF0000000000L), f);
-  fputc2(int(i64 & 0x000000FF00000000L), f);
-  fputc2(int(i64 & 0x00000000FF000000L), f);
-  fputc2(int(i64 & 0x0000000000FF0000L), f);
-  fputc2(int(i64 & 0x000000000000FF00L), f);
-  fputc2(int(i64 & 0x00000000000000FFL), f);
+  fputc2(unsigned char((i64 >> 56) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 48) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 40) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 32) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 24) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 16) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 8) & 0xFF), f);
+  fputc2(unsigned char((i64 >> 0) & 0xFF), f);
 }
 
-static inline int64_t fgeti32(std::FILE* f) {
+static inline int32_t fgeti32(std::FILE* f) {
   int ch = 0;
   int32_t result = 0;
   size_t bytesRead = 0;
@@ -143,10 +144,10 @@ static inline int64_t fgeti32(std::FILE* f) {
 }
 
 static inline void fputi32(int32_t i32, FILE* f) {
-  fputc2(int(i32 & 0xFF000000), f);
-  fputc2(int(i32 & 0x00FF0000), f);
-  fputc2(int(i32 & 0x0000FF00), f);
-  fputc2(int(i32 & 0x000000FF), f);
+  fputc2(unsigned char((i32 >> 24) & 0xFF), f);
+  fputc2(unsigned char((i32 >> 16) & 0xFF), f);
+  fputc2(unsigned char((i32 >> 8) & 0xFF), f);
+  fputc2(unsigned char((i32 >> 0) & 0xFF), f);
 }
 
 static inline void fflush2(std::FILE* f) {
