@@ -1,14 +1,25 @@
 #pragma once
 
+#define _FILE_OFFSET_BITS 64
+
+#include <stdio.h>
+
 #include <filesystem>
 #include <ios>
 #include <stdexcept>
+#include <cctype>
 
 #ifdef WIN32
 #include <io.h>
 #include <Windows.h>
+
+#define __fseek64 _fseeki64
+#define __ftell64 _ftelli64 
+
 #else
 #include <unistd.h>
+#define __fseek64 fseeko
+#deinfe __ftell64 ftello
 #endif
 
 namespace jfio {
@@ -43,8 +54,8 @@ static inline std::FILE* fopen2(
   return f;
 }
 
-static inline long ftell2(std::FILE* f) {
-  long pos = std::ftell(f);
+static inline int64_t ftell2(std::FILE* f) {
+  const auto pos = __ftell64(f);
   if (pos < 0) {
     throw std::runtime_error("ftell failed");
   }
@@ -52,8 +63,8 @@ static inline long ftell2(std::FILE* f) {
   return pos;
 }
 
-static inline void fseek2(std::FILE* f, long offset, int origin) {
-  if (std::fseek(f, offset, origin) != 0) {
+static inline void fseek2(std::FILE* f, int64_t offset, int origin) {
+  if (__fseek64(f, offset, origin) != 0) {
     throw std::runtime_error("Seek failed. Error code: " + std::to_string(ferror(f)));
   }
 }
@@ -64,8 +75,8 @@ static inline void fputc2(int ch, std::FILE* f) {
   }
 }
 
-static inline int fputs2(const char* str, std::FILE* f) {
-  int count = 0;
+static inline size_t fputs2(const char* str, std::FILE* f) {
+  size_t count = 0;
   while (*str) {
     fputc2(*str, f);
     str++;
@@ -75,8 +86,8 @@ static inline int fputs2(const char* str, std::FILE* f) {
   return count;
 }
 
-static inline int fputs2(const char* str, int n, std::FILE* f) {
-  for (int i = 0; i < n; i++, str++) {
+static inline size_t fputs2(const char* str, size_t n, std::FILE* f) {
+  for (size_t i = 0; i < n; i++, str++) {
     fputc2(*str, f);
   }
 
@@ -86,7 +97,7 @@ static inline int fputs2(const char* str, int n, std::FILE* f) {
 static inline int64_t fgeti64(std::FILE* f) {
   int ch = 0;
   int64_t result = 0;
-  int bytesRead = 0;
+  size_t bytesRead = 0;
 
   while (bytesRead < 8 && (ch = fgetc(f)) != EOF) {
     result <<= 8;
@@ -115,7 +126,7 @@ static inline void fputi64(int64_t i64, FILE* f) {
 static inline int64_t fgeti32(std::FILE* f) {
   int ch = 0;
   int32_t result = 0;
-  int bytesRead = 0;
+  size_t bytesRead = 0;
 
   while (bytesRead < 4 && (ch = fgetc(f)) != EOF) {
     result <<= 8;

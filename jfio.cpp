@@ -39,7 +39,7 @@ static inline bool flushJournalFile(JFile& file) {
       }
 
       const auto pos = fgeti64(file.jf);
-      fseek2(file.f, long(pos), SEEK_SET);
+      fseek2(file.f, int64_t(pos), SEEK_SET);
 
       while (contentLength-- > 0) {
         const auto ch = fgetc(file.jf);
@@ -66,7 +66,7 @@ static inline bool flushJournalFile(JFile& file) {
   return flushed;
 }
 
-static inline void jfseekEnd(JFile& file, long offset) {
+static inline void jfseekEnd(JFile& file, int64_t offset) {
   if (offset > 0) {
     throw runtime_error("Cannot seek past SEEK_END");
   }
@@ -79,7 +79,7 @@ static inline void jfseekEnd(JFile& file, long offset) {
   file.pos = pos;
 }
 
-static inline void jfseekCur(JFile& file, long offset) {
+static inline void jfseekCur(JFile& file, int64_t offset) {
   const auto pos = file.maxPos + offset;
   if (pos < 0) {
     throw runtime_error("Cannot seek to before zero");
@@ -92,7 +92,7 @@ static inline void jfseekCur(JFile& file, long offset) {
   file.pos = pos;
 }
 
-static inline void jfseekSet(JFile& file, long offset) {
+static inline void jfseekSet(JFile& file, int64_t offset) {
   if (offset < 0) {
     throw runtime_error("Cannot seek to before zero");
   }
@@ -109,7 +109,7 @@ static inline void initJournal(JFile& file, bool force = false) {
     return;
   }
 
-  long numBytes = 0;
+  int64_t numBytes = 0;
 
   fseek2(file.jf, 0, SEEK_SET);
   // Flag: 1 byte
@@ -162,7 +162,7 @@ static inline void closeBlock(JFile& file) {
   file.currentBlockLength = 0;
 }
 
-static inline void incMainPos(JFile& file, long count) {
+static inline void incMainPos(JFile& file, int64_t count) {
   file.pos += count;
   if (file.pos > file.maxPos) {
     file.maxPos = file.pos;
@@ -207,7 +207,7 @@ JFile jfopen(
   return file;
 }
 
-long jfseek(JFile& file, long offset, int origin) {
+int64_t jfseek(JFile& file, int64_t offset, int origin) {
   initJournal(file);
   closeBlock(file);
 
@@ -231,7 +231,7 @@ long jfseek(JFile& file, long offset, int origin) {
   return file.pos;
 }
 
-long jftell(const JFile & file) {
+int64_t jftell(const JFile & file) {
   return file.pos;
 }
 
@@ -256,7 +256,7 @@ void jfputs(const char* str, JFile& file) {
   incMainPos(file, count);
 }
 
-void jfputs(const char* str, long n, JFile & file) {
+void jfputs(const char* str, int64_t n, JFile & file) {
   initJournal(file);
   initBlock(file);
 

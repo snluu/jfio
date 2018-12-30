@@ -29,12 +29,12 @@ JFile jfopen(
  * Note: This function does not actually perform an fseek on the main file,
  * since the main file content might not exist before the journal got flushed.
  */
-long jfseek(JFile& file, long offset, int origin);
+int64_t jfseek(JFile& file, int64_t offset, int origin);
 
 /**
  * Returns the current position.
  */
-long jftell(const JFile& file);
+int64_t jftell(const JFile& file);
 
 /**
  * Writes one character to the journal at the jftell() position.
@@ -49,7 +49,7 @@ void jfputs(const char* str, JFile& file);
 /**
  * Writes n characters to the journal at the jftell() position.
  */
-void jfputs(const char* str, long n, JFile& file);
+void jfputs(const char* str, int64_t n, JFile& file);
 
 /**
  * Commits the writes in the journal to the main file.
