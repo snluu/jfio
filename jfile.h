@@ -24,7 +24,7 @@ struct JFile {
   int64_t journalEndPos = 0;
 
   // Number of completed blocks
-  size_t numCompletedBlocks = 0;
+  int64_t numCompletedBlocks = 0;
 
   // Starting position of the current block
   // in the journal file
