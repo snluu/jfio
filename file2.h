@@ -42,6 +42,7 @@ static inline std::FILE* fopen2(
   const auto& pathStr = path.string();
   if ((err = fopen_s(&f, pathStr.c_str(), modeA.c_str())) != 0) {
     if (
+      modeB.empty() ||
       modeA == modeB ||
       (err = fopen_s(&f, pathStr.c_str(), modeB.c_str())) != 0
       ) {
