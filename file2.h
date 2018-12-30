@@ -88,9 +88,10 @@ static inline size_t fputs2(const char* str, std::FILE* f) {
   return count;
 }
 
-static inline size_t fputs2(const char* str, size_t n, std::FILE* f) {
-  for (size_t i = 0; i < n; i++, str++) {
-    fputc2(*str, f);
+template<typename _t_buff>
+static inline size_t fputs2(const _t_buff* buff, size_t n, std::FILE* f) {
+  for (size_t i = 0; i < n; i++, buff++) {
+    fputc2(*buff, f);
   }
 
   return n;
