@@ -104,7 +104,7 @@ static inline uint64_t fputs2(const _t_buff* buff, uint64_t n, std::FILE* f) {
 }
 
 /**
- * Read at most n bytes.
+ * Read at most n bytes into the buffer.
  * Returns the number of bytes read.
  */
 template<typename _t_buff>
@@ -117,6 +117,25 @@ static inline uint64_t fgetn(_t_buff* buff, const uint64_t n, std::FILE* f) {
     }
 
     *buff = _t_buff(c);
+  }
+
+  return bytesRead;
+}
+
+/**
+ * Read at most n characters or bytes into the vector.
+ * Returns the number of bytes read.
+ */
+template<typename _t_container>
+static inline uint64_t fgetnv(_t_container& buff, const uint64_t n, std::FILE* f) {
+  uint64_t bytesRead = 0;
+  for (bytesRead = 0; bytesRead < n; bytesRead++) {
+    int c = fgetc(f);
+    if (c == EOF) {
+      break;
+    }
+
+    buff.push_back(c);
   }
 
   return bytesRead;

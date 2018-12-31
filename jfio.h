@@ -83,10 +83,24 @@ int64_t jfgetn(char* s, uint64_t count, JFile& file);
 
 /**
  * Reads at most n bytes from the main file at jftell() position.
- * Returns the number of characters read.
+ * Returns the number of bytes read.
  * Before the journal is flushed, this function will return EOF.
  */
 int64_t jfgetn(unsigned char* s, uint64_t count, JFile& file);
+
+/**
+ * Reads at most n characters from the main file at jftell() position.
+ * Returns the number of characters read.
+ * Before the journal is flushed, this function will return EOF.
+ */
+int64_t jfgetn(std::string& s, uint64_t count, JFile& file);
+
+/**
+ * Reads at most n bytes from the main file at jftell() position.
+ * Returns the number of bytes read.
+ * Before the journal is flushed, this function will return EOF.
+ */
+int64_t jfgetn(std::vector<unsigned char>& buff, uint64_t count, JFile& file);
 
 /**
  * Reads a 32 bit number (4 bytes) from the main file at jftell() position.

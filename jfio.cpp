@@ -349,6 +349,28 @@ int64_t jfgetn(unsigned char * s, uint64_t count, JFile & file) {
   return bytesRead;
 }
 
+int64_t jfgetn(std::string&s, uint64_t count, JFile & file) {
+  if (isWriting(file)) {
+    return EOF;
+  }
+
+  const auto bytesRead = fgetnv(s, count, file.f);
+  file.pos += bytesRead;
+
+  return bytesRead;
+}
+
+int64_t jfgetn(std::vector<unsigned char>& buff, uint64_t count, JFile & file) {
+  if (isWriting(file)) {
+    return EOF;
+  }
+
+  const auto bytesRead = fgetnv(buff, count, file.f);
+  file.pos += bytesRead;
+
+  return bytesRead;
+}
+
 int32_t jfgeti32(JFile& file) {
   if (isWriting(file)) {
     throw runtime_error("jfgeti32: cannot read during writing mode");
