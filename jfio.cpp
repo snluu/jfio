@@ -333,8 +333,8 @@ int jfgetn(char* s, uint32_t count, JFile& file)
   }
 
   int ch = EOF;
-  int bytesRead = 0;
-  while ((ch = fgetc(file.f)) != EOF) {
+  uint32_t bytesRead = 0;
+  while (bytesRead < count && (ch = fgetc(file.f)) != EOF) {
     *s = ch;
     bytesRead++;
     s++;
