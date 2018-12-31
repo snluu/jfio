@@ -327,19 +327,23 @@ int jfgetc(JFile& file) {
   return ch;
 }
 
-int jfgetn(char* s, uint32_t count, JFile& file) {
+int64_t jfgetn(char* s, uint64_t count, JFile& file) {
+  if (isWriting(file)) {
+    return EOF;
+  }
+    
+  const auto bytesRead = fgetn(s, count, file.f);
+  file.pos += bytesRead;
+
+  return bytesRead;
+}
+
+int64_t jfgetn(unsigned char * s, uint64_t count, JFile & file) {
   if (isWriting(file)) {
     return EOF;
   }
 
-  int ch = EOF;
-  uint32_t bytesRead = 0;
-  while (bytesRead < count && (ch = fgetc(file.f)) != EOF) {
-    *s = ch;
-    bytesRead++;
-    s++;
-  }
-
+  const auto bytesRead = fgetn(s, count, file.f);
   file.pos += bytesRead;
 
   return bytesRead;

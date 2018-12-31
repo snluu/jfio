@@ -83,8 +83,8 @@ static inline void fputc2(int ch, std::FILE* f) {
   }
 }
 
-static inline size_t fputs2(const char* str, std::FILE* f) {
-  size_t count = 0;
+static inline uint64_t fputs2(const char* str, std::FILE* f) {
+  uint64_t count = 0;
   while (*str) {
     fputc2(*str, f);
     str++;
@@ -95,18 +95,37 @@ static inline size_t fputs2(const char* str, std::FILE* f) {
 }
 
 template<typename _t_buff>
-static inline size_t fputs2(const _t_buff* buff, size_t n, std::FILE* f) {
-  for (size_t i = 0; i < n; i++, buff++) {
+static inline uint64_t fputs2(const _t_buff* buff, uint64_t n, std::FILE* f) {
+  for (uint64_t i = 0; i < n; i++, buff++) {
     fputc2(*buff, f);
   }
 
   return n;
 }
 
+/**
+ * Read at most n bytes.
+ * Returns the number of bytes read.
+ */
+template<typename _t_buff>
+static inline uint64_t fgetn(_t_buff* buff, const uint64_t n, std::FILE* f) {
+  uint64_t bytesRead = 0;
+  for (bytesRead = 0; bytesRead < n; bytesRead++, buff++) {
+    int c = fgetc(f);
+    if (c == EOF) {
+      break;
+    }
+
+    *buff = _t_buff(c);
+  }
+
+  return bytesRead;
+}
+
 static inline int64_t fgeti64(std::FILE* f) {
   int ch = 0;
   int64_t result = 0;
-  size_t bytesRead = 0;
+  uint64_t bytesRead = 0;
 
   while (bytesRead < 8 && (ch = fgetc(f)) != EOF) {
     result <<= 8;
@@ -135,7 +154,7 @@ static inline void fputi64(int64_t i64, FILE* f) {
 static inline int32_t fgeti32(std::FILE* f) {
   int ch = 0;
   int32_t result = 0;
-  size_t bytesRead = 0;
+  int bytesRead = 0;
 
   while (bytesRead < 4 && (ch = fgetc(f)) != EOF) {
     result <<= 8;

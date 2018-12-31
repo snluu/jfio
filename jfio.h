@@ -79,7 +79,14 @@ int jfgetc(JFile& file);
  * Returns the number of characters read.
  * Before the journal is flushed, this function will return EOF.
  */
-int jfgetn(char* s, uint32_t count, JFile& file);
+int64_t jfgetn(char* s, uint64_t count, JFile& file);
+
+/**
+ * Reads at most n bytes from the main file at jftell() position.
+ * Returns the number of characters read.
+ * Before the journal is flushed, this function will return EOF.
+ */
+int64_t jfgetn(unsigned char* s, uint64_t count, JFile& file);
 
 /**
  * Reads a 32 bit number (4 bytes) from the main file at jftell() position.
