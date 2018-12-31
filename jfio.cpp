@@ -17,7 +17,7 @@ namespace jfio {
 
 static inline bool flushJournalFile(JFile& file) {
   fseek2(file.jf, 0, SEEK_SET);
-  
+
   const auto ch = fgetc(file.jf);
   if (ch != kJournalReady) {
     return false;
@@ -177,13 +177,14 @@ JFile jfopen(
   const fs::path& mainFilePath,
   const fs::path& journalFilePath,
   const string& mainFileModeA,
-  const string& mainFileModeB
+  const string& mainFileModeB,
+  int sharedMode
 ) {
   JFile file{};
-  file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB);
+  file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, sharedMode);
 
   try {
-    file.jf = fopen2(journalFilePath, "rb+", "wb+");
+    file.jf = fopen2(journalFilePath, "rb+", "wb+", SHARE_MODE_WRITING_SHARE_READ);
   } catch (runtime_error&) {
     jfclose(file);
     throw;
@@ -193,11 +194,11 @@ JFile jfopen(
     // We have modified the main file, we want to close and open it again.
     fclose(file.f);
     try {
-      file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB);
+      file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, sharedMode);
     } catch (runtime_error&) {
       jfclose(file);
       throw;
-    }    
+    }
   }
 
   file.pos = ftell2(file.f);
@@ -278,8 +279,7 @@ void jfputs(const char* str, int64_t n, JFile& file) {
   incMainPos(file, n);
 }
 
-void jfputs(const unsigned char* str, int64_t n, JFile & file)
-{
+void jfputs(const unsigned char* str, int64_t n, JFile & file) {
   initJournal(file);
   initBlock(file);
 
@@ -290,8 +290,7 @@ void jfputs(const unsigned char* str, int64_t n, JFile & file)
   incMainPos(file, n);
 }
 
-void jfputi32(int32_t i32, JFile& file)
-{
+void jfputi32(int32_t i32, JFile& file) {
   initJournal(file);
   initBlock(file);
 
@@ -302,8 +301,7 @@ void jfputi32(int32_t i32, JFile& file)
   incMainPos(file, 4);
 }
 
-void jfputi64(int64_t i64, JFile& file)
-{
+void jfputi64(int64_t i64, JFile& file) {
   initJournal(file);
   initBlock(file);
 
@@ -314,8 +312,7 @@ void jfputi64(int64_t i64, JFile& file)
   incMainPos(file, 8);
 }
 
-int jfgetc(JFile& file)
-{
+int jfgetc(JFile& file) {
   if (isWriting(file)) {
     return EOF;
   }
@@ -326,8 +323,7 @@ int jfgetc(JFile& file)
   return ch;
 }
 
-int jfgetn(char* s, uint32_t count, JFile& file)
-{
+int jfgetn(char* s, uint32_t count, JFile& file) {
   if (isWriting(file)) {
     return EOF;
   }
@@ -345,8 +341,7 @@ int jfgetn(char* s, uint32_t count, JFile& file)
   return bytesRead;
 }
 
-int32_t jfgeti32(JFile& file)
-{
+int32_t jfgeti32(JFile& file) {
   if (isWriting(file)) {
     throw runtime_error("jfgeti32: cannot read during writing mode");
   }
@@ -356,8 +351,7 @@ int32_t jfgeti32(JFile& file)
   return n;
 }
 
-int64_t jfgeti64(JFile & file)
-{
+int64_t jfgeti64(JFile & file) {
   if (isWriting(file)) {
     throw runtime_error("jfgeti32: cannot read during writing mode");
   }
@@ -371,7 +365,7 @@ void jfflush(JFile& file) {
   if (file.journalEndPos == 0) {
     return;
   }
-  
+
   closeBlock(file);
   fseek2(file.jf, 0, SEEK_SET);
   fputc2(kJournalReady, file.jf);

@@ -16,10 +16,18 @@
 #define __fseek64 _fseeki64
 #define __ftell64 _ftelli64 
 
+#define SHARE_MODE_EXCLUSIVE _SH_DENYRW
+#define SHARE_MODE_WRITING_SHARE_READ _SH_DENYWR
+#define SHARE_MODE_READ_ONLY _SH_DENYNO
+#define __fopen(name, mode, sharedMode) _fsopen(name, mode, sharedMode)
 #else
 #include <unistd.h>
 #define __fseek64 fseeko
-#deinfe __ftell64 ftello
+#define __ftell64 ftello
+#define SHARED_MODE_EXCLUSIVE 0
+#define SHARED_MODE_WRITING_SHARED_READ 0
+#define SHARED_MODE_READ_ONLY 0
+#define __fopen(name, mode, sharedMode) fopen(name, mode)
 #endif
 
 namespace jfio {
@@ -35,20 +43,18 @@ namespace jfio {
 static inline std::FILE* fopen2(
   const std::filesystem::path& path,
   const std::string& modeA,
-  const std::string& modeB
+  const std::string& modeB,
+  const int sharedMode = SHARE_MODE_EXCLUSIVE
 ) {
   std::FILE* f = nullptr;
-  errno_t err;
   const auto& pathStr = path.string();
-  if ((err = fopen_s(&f, pathStr.c_str(), modeA.c_str())) != 0) {
+  if ((f = __fopen(pathStr.c_str(), modeA.c_str(), sharedMode)) == nullptr) {
     if (
       modeB.empty() ||
       modeA == modeB ||
-      (err = fopen_s(&f, pathStr.c_str(), modeB.c_str())) != 0
+      (f = __fopen(pathStr.c_str(), modeB.c_str(), sharedMode)) == nullptr
       ) {
-      throw std::runtime_error(
-        "Cannot open file " + pathStr + ": " + std::to_string(err)
-      );
+      throw std::runtime_error("Cannot open file " + pathStr);
     }
   }
 
@@ -166,12 +172,12 @@ static inline void fsync2(std::FILE* f) {
   #ifdef WIN32
   const auto fileNum = _get_osfhandle(_fileno(f));
   #else
-  const auto fileNum = fileno(f);  
+  const auto fileNum = fileno(f);
   #endif
 
   if (fileNum < 0) {
     throw std::runtime_error("Fail to get file number");
-  }
+}
 
   #ifdef WIN32
   const auto syncResult = FlushFileBuffers((HANDLE)fileNum) != 0;
@@ -181,7 +187,7 @@ static inline void fsync2(std::FILE* f) {
 
   if (!syncResult) {
     throw std::runtime_error("Fail to commit file");
-  }
+}
 }
 
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include "jfile.h"
+#include "file2.h"
 
 namespace jfio {
 
@@ -20,7 +21,8 @@ JFile jfopen(
   const std::string& mainFileModeA,
   // If mode A fails, then mode B will be used to retry.
   // If mode B fails, then a runtime_error will be thrown.
-  const std::string& mainFileModeB
+  const std::string& mainFileModeB,
+  int sharedMode = SHARE_MODE_WRITING_SHARE_READ
 );
 
 /**
