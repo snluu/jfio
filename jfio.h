@@ -22,7 +22,7 @@ JFile jfopen(
   // If mode A fails, then mode B will be used to retry.
   // If mode B fails, then a runtime_error will be thrown.
   const std::string& mainFileModeB,
-  int sharedMode = SHARE_MODE_WRITING_SHARE_READ
+  int shareMode = SHARE_MODE_WRITING_SHARE_READ
 );
 
 /**

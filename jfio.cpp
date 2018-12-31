@@ -178,26 +178,30 @@ JFile jfopen(
   const fs::path& journalFilePath,
   const string& mainFileModeA,
   const string& mainFileModeB,
-  int sharedMode
+  int shareMode
 ) {
   JFile file{};
-  file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, sharedMode);
+  file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, shareMode);
 
-  try {
-    file.jf = fopen2(journalFilePath, "rb+", "wb+", SHARE_MODE_WRITING_SHARE_READ);
-  } catch (runtime_error&) {
-    jfclose(file);
-    throw;
-  }
-
-  if (flushJournalFile(file)) {
-    // We have modified the main file, we want to close and open it again.
-    fclose(file.f);
+  if (shareMode == SHARE_MODE_READ_ONLY) {
+    file.jf = nullptr;
+  } else {
     try {
-      file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, sharedMode);
+      file.jf = fopen2(journalFilePath, "rb+", "wb+", SHARE_MODE_WRITING_SHARE_READ);
     } catch (runtime_error&) {
       jfclose(file);
       throw;
+    }
+
+    if (flushJournalFile(file)) {
+      // We have modified the main file, we want to close and open it again.
+      fclose(file.f);
+      try {
+        file.f = fopen2(mainFilePath, mainFileModeA, mainFileModeB, shareMode);
+      } catch (runtime_error&) {
+        jfclose(file);
+        throw;
+      }
     }
   }
 
