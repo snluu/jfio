@@ -96,8 +96,28 @@ void testNumbers() {
   jfclose(file);
 }
 
+void testConsecutiveSeeks() {
+  auto file = createTestFile();
+  jfseek(file, 0, SEEK_SET);
+  jfputs("1234567890", file);
+
+  jfseek(file, 9, SEEK_SET);
+  jfseek(file, 0, SEEK_SET);
+  jfputs("Hello...", file);
+  
+  jfflush(file);
+
+  jfseek(file, 0, SEEK_SET);
+  string s(24, '\0');
+  jfgetn(s.data(), 10, file);
+  check(strcmp(s.c_str(), "Hello...90") == 0, "String mismatch");
+
+  jfclose(file);
+}
+
 int main() {
   testSimpleWrite();
   testWrite();
   testNumbers();
+  testConsecutiveSeeks();
 }

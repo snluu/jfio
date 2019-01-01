@@ -33,13 +33,15 @@ static inline bool flushJournalFile(JFile& file) {
     while (numBlocks-- > 0) {
       const auto blockLength = fgeti64(file.jf);
       auto contentLength = blockLength - 16;
+      const auto pos = fgeti64(file.jf);
 
-      if (contentLength == 0) {
+      if (contentLength < 0) {
+        throw runtime_error("Invalid content length");
+      } else if (contentLength == 0) {
         continue;
       }
 
-      const auto pos = fgeti64(file.jf);
-      fseek2(file.f, int64_t(pos), SEEK_SET);
+      fseek2(file.f, pos, SEEK_SET);
 
       while (contentLength-- > 0) {
         const auto ch = fgetc(file.jf);
@@ -241,8 +243,6 @@ int64_t jfseek(JFile& file, int64_t offset, int origin) {
     throw runtime_error("jfseek: origin must be either SEEK_SET, SEEK_CUR, or SEEK_END");
     break;
   }
-
-  initBlock(file);
 
   return file.pos;
 }
