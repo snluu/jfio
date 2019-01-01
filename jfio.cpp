@@ -272,7 +272,7 @@ void jfputs(const char* str, JFile& file) {
   incMainPos(file, count);
 }
 
-void jfputs(const char* str, int64_t n, JFile& file) {
+void jfputs(const char* str, uint64_t n, JFile& file) {
   initJournal(file);
   initBlock(file);
 
@@ -283,7 +283,7 @@ void jfputs(const char* str, int64_t n, JFile& file) {
   incMainPos(file, n);
 }
 
-void jfputs(const unsigned char* str, int64_t n, JFile & file) {
+void jfputs(const unsigned char* str, uint64_t n, JFile & file) {
   initJournal(file);
   initBlock(file);
 

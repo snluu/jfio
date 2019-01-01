@@ -51,12 +51,12 @@ void jfputs(const char* str, JFile& file);
 /**
  * Writes n characters to the journal at the jftell() position.
  */
-void jfputs(const char* str, int64_t n, JFile& file);
+void jfputs(const char* str, uint64_t n, JFile& file);
 
 /**
  * Writes n bytes to the journal at the jftell() position.
  */
-void jfputs(const unsigned char* str, int64_t n, JFile& file);
+void jfputs(const unsigned char* str, uint64_t n, JFile& file);
 
 /**
  * Writes a 32 bit integer to the file as 4 bytes.
